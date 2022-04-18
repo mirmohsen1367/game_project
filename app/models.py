@@ -29,12 +29,16 @@ class UserProfile(Base):
         return 'avatar/{0}/{1}'.format(str(instance.user), "_".join([str(random.randint(0000000000, 9999999999)), filename]))
 
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="user_profiles")
-    LEVEL = (("low", "LOW"), ("middel", "MIDDEL"), ("hight", "HIGHT"))
+    LEVEL = (("low", "LOW"),
+             ("middel", "MIDDEL"),
+             ("hight", "HIGHT"))
+
     fiirst_name = models.CharField(max_length=40, null=True, blank=True)
     last_name = models.CharField(max_length=50, null=True, blank=True)
     nickname = models.CharField(max_length=60)
     avatar = models.FileField()
     level = models.CharField(choices=LEVEL, max_length=10)
+    exp = models.IntegerField(null=True, blank=True)
 
     class Meta:
         ordering = ('-id',)
