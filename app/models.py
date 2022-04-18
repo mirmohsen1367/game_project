@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.utils.translation import gettext_lazy as _
 import random
+from game_pro import settings
 
 class Base(models.Model):
     created = models.DateTimeField(auto_now_add=True)
@@ -33,13 +34,26 @@ class UserProfile(Base):
              ("middel", "MIDDEL"),
              ("hight", "HIGHT"))
 
-    fiirst_name = models.CharField(max_length=40, null=True, blank=True)
-    last_name = models.CharField(max_length=50, null=True, blank=True)
     nickname = models.CharField(max_length=60)
     avatar = models.FileField()
-    level = models.CharField(choices=LEVEL, max_length=10)
+    level = models.CharField(choices=LEVEL, max_length=10, default="low")
     exp = models.IntegerField(null=True, blank=True)
+
+    @property
+    def image_link(self):
+        return f"{settings.IMAGE_URL_SERVE}{settings.MEDIA_URL}{self.avatar}"
 
     class Meta:
         ordering = ('-id',)
         db_table = "user_profile"
+
+
+class Device(Base):
+
+    device_id = models.CharField(max_length=200)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="device")
+
+    class Meta:
+        ordering = ('-id',)
+        db_table = "device"
+

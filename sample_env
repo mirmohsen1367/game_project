@@ -2,3 +2,4 @@ DB_NAME=estate01
 DB_USER=postgres
 DB_PASSWORD=Mohsen#1367
 DB_HOST=localhost
+IMAGE_URL_SERVE =http://127.0.0.1:8000
