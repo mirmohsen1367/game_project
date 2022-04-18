@@ -7,7 +7,9 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = "__all__"
+        fields = ("username", "password", "email")
+
+        extra_kwargs = {'password': {'write_only': True}}
 
 
 class UserProfileCreateSerializer(serializers.ModelSerializer):
@@ -26,8 +28,19 @@ class UserInfoSerializer(serializers.ModelSerializer):
 
 class userProfileInfoSerializer(serializers.ModelSerializer):
 
-    user = UserInfoSerializer()
+    user = UserSerializer()
 
     class Meta:
         model = UserProfile
-        fields = ("nickname", "image_link", "user")
+        fields = ("id", "nickname", "image_link", "user")
+
+    def update(self, instance, validated_data):
+        user = validated_data.get("user", None)
+        if user:
+            instance.user.username = user.get("username", instance.user.username)
+            if "password" in user:
+                instance.user.set_password(user.get("password"))
+            instance.user.save()
+        instance.nickname = validated_data.get("nickname", self.instance.nickname)
+        instance.save()
+        return instance

@@ -1,4 +1,4 @@
-from django.shortcuts import render
+
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import viewsets
 from app.models import User
@@ -11,7 +11,7 @@ from rest_framework import status
 from django.contrib import auth
 import string
 import random
-
+from django.core.exceptions import ObjectDoesNotExist
 
 class UserView(viewsets.ModelViewSet):
     queryset = User.objects.all()
@@ -45,9 +45,7 @@ class UserView(viewsets.ModelViewSet):
         if request.method == "POST":
             serializer = UserProfileCreateSerializer(data=request.data)
             if serializer.is_valid():
-                data = request.data.copy()
-
-                serializer.save(user=request.user)
+                serializer.save()
                 serializer.instance.user = request.user
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -57,4 +55,26 @@ class UserView(viewsets.ModelViewSet):
             serializer = userProfileInfoSerializer(user_profile)
             return Response(serializer.data, status=status.HTTP_200_OK)
 
+        elif request.method == "PATCH":
+            try:
+                profile = UserProfile.objects.get(user_id=request.user.id)
+            except ObjectDoesNotExist:
+                return Response({"message": "your not have a profile"}, status=status.HTTP_200_OK)
 
+            serializer = userProfileInfoSerializer(profile, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(methods=["patch"], detail=False, permission_classes=[IsAuthenticated,])
+    def user_profile(self, request):
+        try:
+            profile = UserProfile.objects.get(user_id=request.user.id)
+        except ObjectDoesNotExist:
+            return Response({"message": "your not have a profile"}, status=status.HTTP_200_OK)
+        serializer = UserProfileCreateSerializer(profile, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"message": "ok"}, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
