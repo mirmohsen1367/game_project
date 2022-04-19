@@ -13,10 +13,17 @@ import string
 import random
 from django.core.exceptions import ObjectDoesNotExist
 
+
 class UserView(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated, ]
+
+
+    def perform_create(self, serializer):
+
+        serializer.save(user=self.request.user.pk)
+
 
     @action(methods=["get"], detail=False, permission_classes=[AllowAny, ])
     def registrition_device(self, request):
@@ -45,13 +52,15 @@ class UserView(viewsets.ModelViewSet):
         if request.method == "POST":
             serializer = UserProfileCreateSerializer(data=request.data)
             if serializer.is_valid():
-                serializer.save()
-                serializer.instance.user = request.user
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
+                self.perform_create(serializer)
+                return Response({"message": "created"}, status=status.HTTP_201_CREATED)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         elif request.method == "GET":
-            user_profile = UserProfile.objects.get(user_id=request.user.id)
+            try:
+                user_profile = UserProfile.objects.get(user_id=request.user.id)
+            except ObjectDoesNotExist:
+                return Response({"message": "you not have profile"}, status=status.HTTP_400_BAD_REQUEST)
             serializer = userProfileInfoSerializer(user_profile)
             return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -68,7 +77,7 @@ class UserView(viewsets.ModelViewSet):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(methods=["patch"], detail=False, permission_classes=[IsAuthenticated,])
-    def user_profile(self, request):
+    def update_profile_image(self, request):
         try:
             profile = UserProfile.objects.get(user_id=request.user.id)
         except ObjectDoesNotExist:
