@@ -214,3 +214,5 @@ idea/*
 .migrations
 migrations/
 migrations/.
+app/migrations/*
+app/migrations
