@@ -5,13 +5,18 @@ from app.models import User
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from app.models import UserProfile, Device
-from app.serializer.user_serializer import UserProfileCreateSerializer, UserSerializer, userProfileInfoSerializer
+from app.serializer.user_serializer import UserProfileCreateSerializer, UserSerializer, UserProfileUpdateSerializer,\
+                                           UserProfileInfoSerializer
+
 from rest_framework.response import Response
 from rest_framework import status
 from django.contrib import auth
 import string
 import random
 from django.core.exceptions import ObjectDoesNotExist
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
+from rest_framework.parsers import MultiPartParser
 
 
 class UserView(viewsets.ModelViewSet):
@@ -19,12 +24,14 @@ class UserView(viewsets.ModelViewSet):
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated, ]
 
-
     def perform_create(self, serializer):
 
         serializer.save(user=self.request.user.pk)
 
+    test_param = openapi.Parameter('device_id', openapi.IN_QUERY, description="test manual param", type=openapi.TYPE_STRING)
+    user_response = openapi.Response('response description', UserSerializer)
 
+    @swagger_auto_schema(method='get', manual_parameters=[test_param], responses={200: user_response})
     @action(methods=["get"], detail=False, permission_classes=[AllowAny, ])
     def registrition_device(self, request):
         if not 'device_id' in request.GET:
@@ -36,6 +43,7 @@ class UserView(viewsets.ModelViewSet):
 
         return Response({"message": user.username}, status=status.HTTP_200_OK)
 
+    @swagger_auto_schema(methods=['post'], operation_description="login", request_body=UserSerializer)
     @action(methods=["post"], detail=False, permission_classes=[AllowAny])
     def log_in(self, request):
         user = auth.authenticate(request, username=request.data["username"], password=request.data["password"])
@@ -47,7 +55,8 @@ class UserView(viewsets.ModelViewSet):
             })
         return Response({"message": "user was not found"}, status=status.HTTP_400_BAD_REQUEST)
 
-    @action(methods=["post", "get", "patch"], detail=False, permission_classes=[IsAuthenticated,])
+    @swagger_auto_schema(methods=['post'], operation_description="post_profile_user", request_body=UserProfileCreateSerializer)
+    @action(methods=["post", "get"], detail=False, permission_classes=[IsAuthenticated,], parser_classes=(MultiPartParser,))
     def user_profile(self, request):
         if request.method == "POST":
             serializer = UserProfileCreateSerializer(data=request.data)
@@ -61,22 +70,23 @@ class UserView(viewsets.ModelViewSet):
                 user_profile = UserProfile.objects.get(user_id=request.user.id)
             except ObjectDoesNotExist:
                 return Response({"message": "you not have profile"}, status=status.HTTP_400_BAD_REQUEST)
-            serializer = userProfileInfoSerializer(user_profile)
+            serializer = UserProfileInfoSerializer(user_profile)
             return Response(serializer.data, status=status.HTTP_200_OK)
 
-        elif request.method == "PATCH":
-            try:
-                profile = UserProfile.objects.get(user_id=request.user.id)
-            except ObjectDoesNotExist:
-                return Response({"message": "your not have a profile"}, status=status.HTTP_200_OK)
+    @action(methods=["post"], detail=False, permission_classes=[IsAuthenticated,])
+    def update_user_profile(self, request):
+        try:
+            profile = UserProfile.objects.get(user_id=request.user.id)
+        except ObjectDoesNotExist:
+            return Response({"message": "your not have a profile"}, status=status.HTTP_200_OK)
 
-            serializer = userProfileInfoSerializer(profile, data=request.data, partial=True)
-            if serializer.is_valid():
-                serializer.save()
-                return Response(serializer.data, status=status.HTTP_200_OK)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer = UserProfileUpdateSerializer(profile, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    @action(methods=["patch"], detail=False, permission_classes=[IsAuthenticated,])
+    @action(methods=["post"], detail=False, permission_classes=[IsAuthenticated,])
     def update_profile_image(self, request):
         try:
             profile = UserProfile.objects.get(user_id=request.user.id)

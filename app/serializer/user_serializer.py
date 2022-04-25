@@ -17,9 +17,11 @@ class UserProfileCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
         fields = ("nickname", "avatar")
+
     def create(self, validated_data):
         user = validated_data.pop("user")
         return UserProfile.objects.create(user_id=user, **validated_data)
+
 
 class UserInfoSerializer(serializers.ModelSerializer):
 
@@ -28,7 +30,7 @@ class UserInfoSerializer(serializers.ModelSerializer):
         fields = ("username", "email")
 
 
-class userProfileInfoSerializer(serializers.ModelSerializer):
+class UserProfileUpdateSerializer(serializers.ModelSerializer):
 
     user = UserSerializer()
 
@@ -46,3 +48,12 @@ class userProfileInfoSerializer(serializers.ModelSerializer):
         instance.nickname = validated_data.get("nickname", self.instance.nickname)
         instance.save()
         return instance
+
+
+class UserProfileInfoSerializer(serializers.ModelSerializer):
+
+    user = UserSerializer()
+
+    class Meta:
+        model = UserProfile
+        fields = ("id", "nickname", "image_link", "user", "level", "exp", "coin", "elixir")
