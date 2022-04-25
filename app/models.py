@@ -35,7 +35,7 @@ class UserProfile(Base):
              ("hight", "HIGHT"))
 
     nickname = models.CharField(max_length=60)
-    avatar = models.FileField()
+    avatar = models.FileField(upload_to=file_directory_path)
     level = models.CharField(choices=LEVEL, max_length=10, default="low")
     exp = models.IntegerField(null=True, blank=True)
 
