@@ -3,6 +3,8 @@ from django.contrib.auth.models import AbstractUser
 from django.utils.translation import gettext_lazy as _
 import random
 from game_pro import settings
+from django.core.validators import MinValueValidator
+
 
 class Base(models.Model):
     created = models.DateTimeField(auto_now_add=True)
@@ -18,6 +20,7 @@ class User(AbstractUser):
         'unique': _("A user with that username already exists.")})
     password = models.CharField(null=True, blank=True,  max_length=128)
     email = models.EmailField(null=True, blank=True)
+    leader_board = models.IntegerField(default=0, validators=[MinValueValidator(0)])
     REQUIRED_FIELDS = ['email']
 
     class Meta:
@@ -35,9 +38,11 @@ class UserProfile(Base):
              ("hight", "HIGHT"))
 
     nickname = models.CharField(max_length=60)
-    avatar = models.FileField()
+    avatar = models.FileField(upload_to=file_directory_path)
     level = models.CharField(choices=LEVEL, max_length=10, default="low")
     exp = models.IntegerField(null=True, blank=True)
+    coin = models.BigIntegerField(default=0, validators=[MinValueValidator(0)])
+    elixir = models.BigIntegerField(default=0, validators=[MinValueValidator(0)])
 
     @property
     def image_link(self):
