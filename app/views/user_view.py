@@ -7,7 +7,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from app.models import UserProfile, Device
 from app.serializer.user_serializer import UserProfileCreateSerializer, UserSerializer, UserProfileUpdateSerializer,\
                                            UserProfileInfoSerializer
-
+from app.models import GroheUser
 from rest_framework.response import Response
 from rest_framework import status
 from django.contrib import auth
@@ -17,6 +17,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.parsers import MultiPartParser
+from django.db.models import Count
 
 
 class UserView(viewsets.ModelViewSet):
@@ -37,10 +38,17 @@ class UserView(viewsets.ModelViewSet):
         if not 'device_id' in request.GET:
             return Response({"message": "pleae enter device_id"}, status=status.HTTP_200_OK)
         letters = string.ascii_lowercase + string.ascii_uppercase
-        result_str = ''.join(random.choice(letters) for i in range(8))
+        result_str = ''.join(random.choice(letters) for _ in range(8))
         user = User.objects.create_user(username=result_str, password=result_str)
         _ = Device.objects.create(device_id=request.GET.get("device_id"), user_id=user.id)
-
+        groups_users = GroheUser.objects.annotate(counts_users=Count("user"))
+        groups_users.filter(counts_users__lt=100).order_by("-counts_users")
+        if groups_users:
+            gr = groups_users[0]
+            gr.users.add(user)
+            return Response({"message": user.username}, status=status.HTTP_200_OK)
+        gr = GroheUser.objects.create()
+        gr.users.add(user)
         return Response({"message": user.username}, status=status.HTTP_200_OK)
 
     @swagger_auto_schema(methods=['post'], operation_description="login", request_body=UserSerializer)

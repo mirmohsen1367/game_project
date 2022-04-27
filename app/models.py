@@ -21,6 +21,8 @@ class User(AbstractUser):
     password = models.CharField(null=True, blank=True,  max_length=128)
     email = models.EmailField(null=True, blank=True)
     leader_board = models.IntegerField(default=0, validators=[MinValueValidator(0)])
+    user_group = models.ForeignKey("app.GroheUser", on_delete=models.DO_NOTHING,
+                                   related_name="users", related_query_name="user", null=True)
     REQUIRED_FIELDS = ['email']
 
     class Meta:
@@ -62,3 +64,9 @@ class Device(Base):
         ordering = ('-id',)
         db_table = "device"
 
+
+class GroheUser(Base):
+
+    class Meta:
+        ordering = ("id",)
+        db_table = "grohe_user"
