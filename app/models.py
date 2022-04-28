@@ -43,10 +43,6 @@ class UserProfile(Base):
         return 'avatar/{0}/{1}'.format(str(instance.user), "_".join([str(random.randint(0000000000, 9999999999)), filename]))
 
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="user_profiles")
-    LEVEL = (("low", "LOW"),
-             ("middel", "MIDDEL"),
-             ("hight", "HIGHT"))
-
     nickname = models.CharField(max_length=60)
     avatar = models.FileField(upload_to=file_directory_path)
 
