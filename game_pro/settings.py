@@ -80,7 +80,7 @@ WSGI_APPLICATION = 'game_pro.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 
-DATABASES = {"default": databases["sqlite"]}
+DATABASES = {"default": databases["default"]}
 
 
 # Password validation
