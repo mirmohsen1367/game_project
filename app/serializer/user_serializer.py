@@ -16,7 +16,7 @@ class UserProfileCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserProfile
-        fields = ("nickname", "avatar")
+        fields = ("id", "nickname", "avatar")
 
     def create(self, validated_data):
         user = validated_data.pop("user")
@@ -52,15 +52,18 @@ class UserProfileUpdateSerializer(serializers.ModelSerializer):
 
 class UserProfileInfoSerializer(serializers.ModelSerializer):
 
-    user = UserSerializer()
-
-    class Meta:
-        model = UserProfile
-        fields = ("id", "nickname", "image_link", "user", "level", "exp", "coin", "elixir")
-
-
-class UserLeaderBoardSerializer(serializers.ModelSerializer):
+    nickname = serializers.CharField(source="user_profiles.nickname")
+    avatar = serializers.CharField(source="user_profiles.image_link")
 
     class Meta:
         model = User
-        fields = ("username", "leader_board")
+        fields = ("nickname", "point", "level", "xp",
+                  "coin", "gem", "elixir", "nickname", "avatar")
+
+
+class UserLeaderBoardSerializer(serializers.ModelSerializer):
+    nickname = serializers.CharField(source="user_profiles.nickname")
+
+    class Meta:
+        model = User
+        fields = ("username", "point", "nickname")

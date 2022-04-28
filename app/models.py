@@ -20,10 +20,9 @@ class User(AbstractUser):
         'unique': _("A user with that username already exists.")})
     password = models.CharField(null=True, blank=True,  max_length=128)
     email = models.EmailField(null=True, blank=True)
-    point = models.IntegerField(default=0, validators=[MinValueValidator(0)])
     user_group = models.ForeignKey("app.GroheUser", on_delete=models.DO_NOTHING,
                                    related_name="users", related_query_name="user", null=True)
-    leader_board = models.BigIntegerField(default=1)
+    point = models.BigIntegerField(default=0)
     level = models.IntegerField(default=1)
     xp = models.BigIntegerField(default=0, validators=[MinValueValidator(0)])
     coin = models.BigIntegerField(default=0, validators=[MinValueValidator(0)])
@@ -34,6 +33,9 @@ class User(AbstractUser):
     class Meta:
         ordering = ('-id',)
         db_table = "user"
+
+    def __str__(self):
+        return self.username
 
 
 class UserProfile(Base):
@@ -56,6 +58,9 @@ class UserProfile(Base):
         ordering = ('-id',)
         db_table = "user_profile"
 
+    def __str__(self):
+        return self.nickname
+
 
 class Device(Base):
 
@@ -66,6 +71,8 @@ class Device(Base):
         ordering = ('-id',)
         db_table = "device"
 
+    def __str__(self):
+        return self.device_id
 
 class GroheUser(Base):
 
@@ -73,14 +80,55 @@ class GroheUser(Base):
         ordering = ("id",)
         db_table = "grohe_user"
 
+    def __str__(self):
+        return self.pk
 
 class Tournoment(Base):
     name = models.CharField(max_length=50)
     start_date = models.DateField(auto_now_add=True)
     end_date = models.DateField()
-    max_coin_reward = models.IntegerField()
-    min_coin_reward = models.IntegerField()
+    max_coin_reward = models.BigIntegerField()
+    min_coin_reward = models.BigIntegerField()
 
     class Meta:
         ordering = ("-id",)
         db_table = "tournoment"
+    def __str__(self):
+        return self.name
+
+
+class Store(Base):
+    name = models.CharField(max_length=60)
+    link = models.URLField(max_length=200)
+
+    class Meta:
+        ordering = ("-id",)
+        db_table = "store"
+
+    def __str__(self):
+        return self.name
+
+
+class Shop(Base):
+    TYPE = (("coin", "COIN"), ("gem", "GEM"))
+    PAY_TYPE = (("coin", "COIN"), ("gem", "GEM"), ("cash", "CASH"))
+
+    def file_directory_path(instance, filename):
+        return 'shope/{0}/{1}'.format(str(instance.store),
+                                       "_".join([str(random.randint(0000000000, 9999999999)), filename]))
+
+    store = models.ForeignKey(Store, on_delete=models.CASCADE, related_name="shopes",
+                              related_query_name="shope")
+    value = models.DecimalField(max_digits=20, decimal_places=0)
+    pay_value = models.DecimalField(max_digits=20, decimal_places=0, null=True, blank=True)
+    type = models.CharField(max_length=25, choices=TYPE)
+    pay_type = models.CharField(max_length=25, choices=PAY_TYPE)
+    img = models.FileField(upload_to=file_directory_path)
+
+    @property
+    def image_link(self):
+        return f"{settings.IMAGE_URL_SERVE}{settings.MEDIA_URL}{self.img}"
+
+    class Meta:
+        ordering = ("-id",)
+        db_table = "shop"
