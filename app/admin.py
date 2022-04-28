@@ -13,18 +13,26 @@ class GameAdminSite(AdminSite):
 game_admin_site =GameAdminSite(name='game_admin')
 
 
-@admin.register(Device)
-class DeviceAdmin(admin.ModelAdmin):
-    list_display = ["id", "device_id", "user"]
-    list_filter = ["user",]
-    search_fields = ('device_id', )
-
-
+# @admin.register(Device)
+# class DeviceAdmin(admin.ModelAdmin):
+#     list_display = ["id", "device_id", "user"]
+#     list_filter = ["user",]
+#     search_fields = ('device_id', )
+from django.contrib.auth.admin import UserAdmin
 @admin.register(User)
-class UserAdmin(admin.ModelAdmin):
-
-    list_display = ["username", "point", "level", "xp", "coin", "gem", "elixir"]
-    list_filter = ["username", "level"]
+class UserAmin(UserAdmin):
+    list_display = ['id',  'mobile', 'username', 'is_active']
+    list_display_links = ['id', 'mobile', 'username']
+    search_fields = ['id', 'mobile', 'username', 'first_name', 'last_name']
+    fieldsets = (
+        (None, {'fields': (
+            'email', 'password', 'first_name', 'last_name', 'username', 'mobile',
+            'is_active', 'is_superuser',)}),)
+# @admin.register(User)
+# class UserAdmin(admin.ModelAdmin):
+#
+#     list_display = ["username", "point", "level", "xp", "coin", "gem", "elixir"]
+#     list_filter = ["username", "level"]
 
 
 @admin.register(UserProfile)
@@ -48,7 +56,6 @@ class ShopeAdmin(admin.ModelAdmin):
         return obj.store.name
 
 game_admin_site.register(Device)
-game_admin_site.register(User)
 game_admin_site.register(UserProfile)
 game_admin_site.register(Store)
 game_admin_site.register(Shop)

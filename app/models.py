@@ -2,6 +2,8 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.utils.translation import gettext_lazy as _
 import random
+
+from app.manager import CustomUserManager
 from game_pro import settings
 from django.core.validators import MinValueValidator
 
@@ -28,14 +30,15 @@ class User(AbstractUser):
     coin = models.BigIntegerField(default=0, validators=[MinValueValidator(0)])
     gem = models.BigIntegerField(default=0, validators=[MinValueValidator(0)])
     elixir = models.BigIntegerField(default=0, validators=[MinValueValidator(0)])
-    REQUIRED_FIELDS = ['email']
-
-    class Meta:
-        ordering = ('-id',)
-        db_table = "user"
+    mobile = models.CharField(max_length=11)
+    REQUIRED_FIELDS = ['mobile']
+    objects = CustomUserManager()
 
     def __str__(self):
         return self.username
+    class Meta:
+        ordering = ('-id',)
+        db_table = "user"
 
 
 class UserProfile(Base):
