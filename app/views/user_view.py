@@ -5,8 +5,8 @@ from app.models import User
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from app.models import UserProfile, Device
-from app.serializer.user_serializer import UserProfileCreateSerializer, UserSerializer, UserProfileUpdateSerializer,\
-                                           UserProfileInfoSerializer
+from app.serializer.user_serializer import UserProfileCreateSerializer, UserSerializer, UserProfileUpdateSerializer, \
+    UserProfileInfoSerializer, UserLeaderBoardSerializer
 from app.models import GroheUser
 from rest_framework.response import Response
 from rest_framework import status
@@ -105,3 +105,11 @@ class UserView(viewsets.ModelViewSet):
             serializer.save()
             return Response({"message": "ok"}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(methods=["get"], detail=False, permission_classes=[IsAuthenticated,])
+    def user_leader_board(self, request):
+        group = request.user.user_group
+        list_of_users = group.users.all().order_by("-leader_board")
+        serializer = UserLeaderBoardSerializer(list_of_users, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+

@@ -57,3 +57,10 @@ class UserProfileInfoSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
         fields = ("id", "nickname", "image_link", "user", "level", "exp", "coin", "elixir")
+
+
+class UserLeaderBoardSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = User
+        fields = ("username", "leader_board")
